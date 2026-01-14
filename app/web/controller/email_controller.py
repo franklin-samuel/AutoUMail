@@ -10,7 +10,8 @@ from app.core.business.email_classifier_port import EmailClassifierPort
 from app.core.business.read_file_port import ReadFilePort
 from app.domain.email import Email
 from app.domain.exception.business_exception import BusinessException
-from app.web.model.classify_email_request import ClassifyEmailFileRequest, ClassifyEmailTextRequest
+from app.web.model.classify_email_text_request import ClassifyEmailTextRequest
+from app.web.model.classify_email_file_request import ClassifyEmailFileRequest
 from app.web.dependency import get_email_classifier_port, get_read_file_port
 
 router = APIRouter()
