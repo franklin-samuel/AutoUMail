@@ -58,85 +58,110 @@ fileUploadArea.addEventListener('drop', (e) => {
     }
 });
 
-const textForm = document.getElementById('textForm');
+const loadingSteps = [
+    'Lendo email...',
+    'Processando com IA...',
+    'Gerando resposta...'
+];
 
+async function animateLoadingSteps(stepTextElement) {
+    stepTextElement.style.transition = 'opacity 0.2s ease-in-out';
+
+    for (let i = 0; i < loadingSteps.length; i++) {
+        stepTextElement.style.opacity = '0';
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        stepTextElement.textContent = loadingSteps[i];
+        stepTextElement.style.opacity = '1';
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
+const textForm = document.getElementById('textForm');
 textForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const button = e.target.querySelector('button[type="submit"]');
     const btnText = button.querySelector('.btn-text');
     const btnLoader = button.querySelector('.btn-loader');
-    
+    const stepText = button.querySelector('.loading-step-text');
+
     button.disabled = true;
     btnText.classList.add('hidden');
     btnLoader.classList.remove('hidden');
     btnLoader.classList.add('flex');
-    
+
+    const animationPromise = animateLoadingSteps(stepText);
+
     try {
         const formData = new FormData(textForm);
-        
         const response = await fetch('/api/classify/text', {
             method: 'POST',
             body: formData
         });
-        
+
         const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.detail || 'Error processing request');
-        }
-        
+
+        if (!response.ok) throw new Error(data.detail || 'Erro ao processar texto');
+
+        await animationPromise;
         showSuccessModal(data);
-        
+
     } catch (error) {
         showErrorToast(error.message);
     } finally {
-        // Reset button
         button.disabled = false;
         btnText.classList.remove('hidden');
         btnLoader.classList.add('hidden');
         btnLoader.classList.remove('flex');
+        stepText.textContent = loadingSteps[0];
     }
 });
 
 const fileForm = document.getElementById('fileForm');
-
 fileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const button = e.target.querySelector('button[type="submit"]');
     const btnText = button.querySelector('.btn-text');
     const btnLoader = button.querySelector('.btn-loader');
-    
+    const stepText = button.querySelector('.loading-step-text');
+
+    if (!fileInput.files[0]) {
+        showErrorToast("Por favor, selecione um arquivo.");
+        return;
+    }
+
     button.disabled = true;
     btnText.classList.add('hidden');
     btnLoader.classList.remove('hidden');
     btnLoader.classList.add('flex');
-    
+
+    const animationPromise = animateLoadingSteps(stepText);
+
     try {
         const formData = new FormData(fileForm);
-        
         const response = await fetch('/api/classify/file', {
             method: 'POST',
             body: formData
         });
-        
+
         const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.detail || 'Error processing request');
-        }
-        
+
+        if (!response.ok) throw new Error(data.detail || 'Erro ao processar arquivo');
+
+        await animationPromise;
         showSuccessModal(data);
-        
+
     } catch (error) {
         showErrorToast(error.message);
     } finally {
-        // Reset button
         button.disabled = false;
         btnText.classList.remove('hidden');
         btnLoader.classList.add('hidden');
         btnLoader.classList.remove('flex');
+        stepText.textContent = loadingSteps[0];
     }
 });
 
@@ -144,66 +169,50 @@ function showSuccessModal(data) {
     const modal = document.getElementById('successModal');
     const categoryEl = document.getElementById('resultCategory');
     const responseEl = document.getElementById('resultResponse');
-    
+
     categoryEl.textContent = data.category;
-    categoryEl.className = `inline-block px-8 py-3 rounded-2xl text-lg font-bold category-badge ${data.category.toLowerCase()}`;
-    
+    const categoryClass = data.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    categoryEl.className = `inline-block px-8 py-3 rounded-2xl text-lg font-bold category-badge ${categoryClass}`;
+
     responseEl.textContent = data.suggested_response;
-    
     modal.classList.remove('hidden');
-    
     document.body.style.overflow = 'hidden';
 }
 
 document.getElementById('closeModal').addEventListener('click', () => {
-    const modal = document.getElementById('successModal');
-    modal.classList.add('hidden');
-    
-    // Reset forms
+    document.getElementById('successModal').classList.add('hidden');
     textForm.reset();
     fileForm.reset();
     fileNameDisplay.textContent = '';
-    
-    // Restore body scroll
     document.body.style.overflow = 'auto';
 });
 
 document.getElementById('copyButton').addEventListener('click', async () => {
     const response = document.getElementById('resultResponse').textContent;
     const button = document.getElementById('copyButton');
-
     const originalContent = button.innerHTML;
 
     try {
         await navigator.clipboard.writeText(response);
-        
-        button.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mx-auto">
-          <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
-        </svg>
-        `;
+        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mx-auto"><path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" /></svg>`;
         button.classList.add('bg-green-600');
-        button.classList.remove('from-orange-500', 'to-orange-600');
-
         setTimeout(() => {
             button.innerHTML = originalContent;
             button.classList.remove('bg-green-600');
-            button.classList.add('from-orange-500', 'to-orange-600');
         }, 2000);
     } catch (err) {
-        showErrorToast('Erro ao copiar. Tente selecionar manualmente.');
+        showErrorToast('Erro ao copiar.');
     }
 });
 
 function showErrorToast(message) {
     const container = document.getElementById('toastContainer');
-    
     const toast = document.createElement('div');
     toast.className = 'animate-slideInRight bg-red-600/95 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl border border-red-500/50 flex items-start gap-4 max-w-md';
-    
+
     toast.innerHTML = `
          <div class="flex flex-row justify-center items-center gap-5">
-            <div class="flex-shrink-0 text-2xl">
+            <div class="flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-7">
                   <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
                 </svg>
@@ -212,24 +221,15 @@ function showErrorToast(message) {
                 <p class="font-semibold mb-1">Erro</p>
                 <p class="text-sm text-red-100">${message}</p>
             </div>
-            <button class="flex-shrink-0 text-white hover:text-red-200 font-bold text-xl" onclick="this.closest('.animate-slideInRight').remove()">
-                x
-            </button>
+            <button class="text-white hover:text-red-200 font-bold" onclick="this.closest('div.animate-slideInRight').remove()">✕</button>
          </div>
-        `;
-    
+    `;
+
     container.appendChild(toast);
-    
     setTimeout(() => {
         if (toast.parentElement) {
-            toast.classList.remove('animate-slideInRight');
-            toast.classList.add('animate-slideOutRight');
-            
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.remove();
-                }
-            }, 300);
+            toast.classList.replace('animate-slideInRight', 'animate-slideOutRight');
+            setTimeout(() => toast.remove(), 300);
         }
     }, 5000);
 }
