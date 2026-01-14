@@ -32,26 +32,20 @@ async def classify_file(
         email_classifier: Annotated[EmailClassifierPort, Depends(get_email_classifier_port)],
         file_reader: Annotated[ReadFilePort, Depends(get_read_file_port)]
 ):
-    try:
-        content = await file_reader.read(form.file)
-        if not content:
-            raise BusinessException("Por favor, anexe o arquivo.")
 
-        email = Email(original_content=content, processed_content=None)
+    content = await file_reader.read(form.file)
+    if not content:
+        raise BusinessException("Por favor, anexe o arquivo.")
 
-        classification = await email_classifier.classify(email)
+    email = Email(original_content=content, processed_content=None)
 
-        return JSONResponse({
-            "success": True,
-            "category": classification.category.value,
-            "suggested_response": classification.suggested_response
-        })
+    classification = await email_classifier.classify(email)
 
-    except BusinessException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Ocorreu um erro. Tente novamente mais tarde")
+    return JSONResponse({
+        "success": True,
+        "category": classification.category.value,
+        "suggested_response": classification.suggested_response
+    })
 
 @router.post("/api/classify/text")
 async def classify_text(
@@ -59,27 +53,21 @@ async def classify_text(
         form: Annotated[ClassifyEmailTextRequest, Depends()],
         email_classifier: Annotated[EmailClassifierPort, Depends(get_email_classifier_port)]
 ):
-    try:
-        if form.text is None:
-            raise BusinessException('Por favor, digite ou cole o texto do email.')
+    if form.text is None:
+        raise BusinessException('Por favor, digite ou cole o texto do email.')
 
-        content = form.text.strip()
+    content = form.text.strip()
 
-        if not content:
-            raise BusinessException("Por favor, digite ou cole o texto do email.")
+    if not content:
+        raise BusinessException("Por favor, digite ou cole o texto do email.")
 
-        email = Email(original_content=content, processed_content=None)
+    email = Email(original_content=content, processed_content=None)
 
-        classification = await email_classifier.classify(email)
+    classification = await email_classifier.classify(email)
 
-        return JSONResponse({
-            "success": True,
-            "category": classification.category.value,
-            "suggested_response": classification.suggested_response
-        })
+    return JSONResponse({
+        "success": True,
+        "category": classification.category.value,
+        "suggested_response": classification.suggested_response
+    })
 
-    except BusinessException as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Ocorreu um erro. Tente novamente mais tarde")

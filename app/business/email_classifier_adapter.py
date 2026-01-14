@@ -12,15 +12,11 @@ class EmailClassifierAdapter(EmailClassifierPort):
         self.text_processor = text_processor
 
     async def classify(self, email: Email) -> Classification:
-        try:
-            processed_text = await self.text_processor.process(email.original_content)
-            email.processed_content = processed_text
+        processed_text = await self.text_processor.process(email.original_content)
+        email.processed_content = processed_text
 
-            classification = await self.gemini_service.classify_and_generate_response(
-                email.processed_content
-            )
+        classification = await self.gemini_service.classify_and_generate_response(
+            email.processed_content
+        )
 
-            return classification
-
-        except Exception as e:
-            raise Exception(f"Erro ao classificar email: {str(e)}")
+        return classification
