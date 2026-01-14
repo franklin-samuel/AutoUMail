@@ -47,7 +47,7 @@ async def classify_file(
             "suggested_response": classification.suggested_response
         })
 
-    except Exception as e:
+    except BusinessException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/api/classify/text")
@@ -57,6 +57,9 @@ async def classify_text(
         email_classifier: Annotated[EmailClassifierPort, Depends(get_email_classifier_port)]
 ):
     try:
+        if form.text is None:
+            raise BusinessException('Por favor, digite ou cole o texto do email.')
+
         content = form.text.strip()
 
         if not content:
@@ -72,5 +75,5 @@ async def classify_text(
             "suggested_response": classification.suggested_response
         })
 
-    except Exception as e:
+    except BusinessException as e:
         raise HTTPException(status_code=400, detail=str(e))
