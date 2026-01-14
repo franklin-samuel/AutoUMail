@@ -50,6 +50,9 @@ async def classify_file(
     except BusinessException as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Ocorreu um erro. Tente novamente mais tarde")
+
 @router.post("/api/classify/text")
 async def classify_text(
         request: Request,
@@ -77,3 +80,6 @@ async def classify_text(
 
     except BusinessException as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Ocorreu um erro. Tente novamente mais tarde")
