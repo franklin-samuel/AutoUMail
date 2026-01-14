@@ -78,6 +78,41 @@ async function animateLoadingSteps(stepTextElement) {
     }
 }
 
+async function typeWriterEffect(element, text, speed = 30) {
+    element.textContent = '';
+    element.style.opacity = '1';
+
+    const cursor = document.createElement('span');
+    cursor.textContent = '|';
+    cursor.style.animation = 'blink 0.7s infinite';
+    cursor.style.marginLeft = '2px';
+
+    for (let i = 0; i < text.length; i++) {
+        element.textContent += text.charAt(i);
+
+        const variance = Math.random() * 20 - 10;
+        await new Promise(resolve => setTimeout(resolve, speed + variance));
+
+        if (['.', '!', '?', ','].includes(text.charAt(i))) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+        }
+    }
+
+    return true;
+}
+
+async function animateCategory(categoryElement, categoryText) {
+    categoryElement.style.opacity = '0';
+    categoryElement.style.transform = 'scale(0.8)';
+    categoryElement.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    categoryElement.textContent = categoryText;
+    categoryElement.style.opacity = '1';
+    categoryElement.style.transform = 'scale(1)';
+}
+
 const textForm = document.getElementById('textForm');
 textForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -106,7 +141,7 @@ textForm.addEventListener('submit', async (e) => {
         if (!response.ok) throw new Error(data.detail || 'Erro ao processar texto');
 
         await animationPromise;
-        showSuccessModal(data);
+        await showSuccessModal(data);
 
     } catch (error) {
         showErrorToast(error.message);
@@ -152,7 +187,7 @@ fileForm.addEventListener('submit', async (e) => {
         if (!response.ok) throw new Error(data.detail || 'Erro ao processar arquivo');
 
         await animationPromise;
-        showSuccessModal(data);
+        await showSuccessModal(data);
 
     } catch (error) {
         showErrorToast(error.message);
@@ -165,18 +200,21 @@ fileForm.addEventListener('submit', async (e) => {
     }
 });
 
-function showSuccessModal(data) {
+async function showSuccessModal(data) {
     const modal = document.getElementById('successModal');
     const categoryEl = document.getElementById('resultCategory');
     const responseEl = document.getElementById('resultResponse');
 
-    categoryEl.textContent = data.category;
-    const categoryClass = data.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    categoryEl.className = `inline-block px-8 py-3 rounded-2xl text-lg font-bold category-badge ${categoryClass}`;
-
-    responseEl.textContent = data.suggested_response;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    const categoryClass = data.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    categoryEl.className = `inline-block px-8 py-3 rounded-2xl text-lg font-bold category-badge ${categoryClass}`;
+    await animateCategory(categoryEl, data.category);
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    await typeWriterEffect(responseEl, data.suggested_response, 25);
 }
 
 document.getElementById('closeModal').addEventListener('click', () => {

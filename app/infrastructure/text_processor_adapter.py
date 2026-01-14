@@ -1,3 +1,4 @@
+from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 import re
@@ -30,14 +31,13 @@ class TextProcessorAdapter(TextProcessorPort):
 
             text = re.sub(r'\s+', ' ', text).strip()
 
-            words = text.split()
+            tokens = word_tokenize(text, language='portuguese')
 
-            filtered_words = [
-                word for word in words
-                if word not in self.stop_words and len(word) > 2
-            ]
+            tokens = [word for word in tokens if word not in self.stop_words and len(word) > 2]
 
-            processed_text = ' '.join(filtered_words)
+            tokens = [self.lemmatizer.lemmatize(word) for word in tokens]
+
+            processed_text = ' '.join(tokens)
 
             return processed_text
 
