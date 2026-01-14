@@ -3,11 +3,8 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 import re
 
-from app.core.infrastructure.text_processor_port import TextProcessorPort
+from app.core.business.text_processor_port import TextProcessorPort
 import nltk
-
-from app.domain.exception.business_exception import BusinessException
-
 
 class TextProcessorAdapter(TextProcessorPort):
 

@@ -9,9 +9,9 @@ from app.business.read_file_adapter import ReadFileAdapter
 from app.core.business.email_classifier_port import EmailClassifierPort
 from app.core.business.read_file_port import ReadFilePort
 from app.core.infrastructure.gemini_service_port import GeminiServicePort
-from app.core.infrastructure.text_processor_port import TextProcessorPort
+from app.core.business.text_processor_port import TextProcessorPort
 from app.infrastructure.gemini_service_adapter import GeminiServiceAdapter
-from app.infrastructure.text_processor_adapter import TextProcessorAdapter
+from app.business.text_processor_adapter import TextProcessorAdapter
 
 load_dotenv()
 
