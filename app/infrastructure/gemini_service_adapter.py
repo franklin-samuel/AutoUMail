@@ -65,7 +65,7 @@ class GeminiServiceAdapter(GeminiServicePort):
             response = result.get('response', '').strip()
 
             if not response:
-                raise Exception("Resposta vazia retornada pela IA")
+                raise BusinessException("Resposta vazia retornada pela IA")
 
             return Classification(
                 category=category,
