@@ -1,16 +1,18 @@
 import re
 import json
 import google.generativeai as genai
+from google.api_core import exceptions
 from app.core.infrastructure.gemini_service_port import GeminiServicePort
 from app.domain.classification import Classification
 from app.domain.enums.category import Category
+from app.domain.exception.business_exception import BusinessException
 
 
 class GeminiServiceAdapter(GeminiServicePort):
     def __init__(self, api_key: str):
         try:
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-flash-latest')
+            self.model = genai.GenerativeModel('gemini-3-flash-preview')
         except Exception as e:
             raise Exception(f"Erro ao configurar Gemini: {str(e)}")
 
@@ -59,6 +61,9 @@ class GeminiServiceAdapter(GeminiServicePort):
                 category=category,
                 suggested_response=response
             )
+
+        except exceptions.ResourceExhausted:
+            raise BusinessException("Limite atingido, tente novamente mais tarde.")
 
         except json.JSONDecodeError as e:
             raise Exception(f"Erro ao parsear resposta JSON: {str(e)}")

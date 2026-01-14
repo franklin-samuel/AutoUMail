@@ -7,7 +7,10 @@ from app.web.controller import email_controller
 app = FastAPI(
     title="AutoUMail Service",
     description="Sistema de classificação automática de emails com IA",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
