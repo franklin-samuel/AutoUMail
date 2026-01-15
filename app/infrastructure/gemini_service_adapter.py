@@ -12,7 +12,7 @@ class GeminiServiceAdapter(GeminiServicePort):
     def __init__(self, api_key: str):
         try:
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-3-flash-preview')
+            self.model = genai.GenerativeModel('gemini-2.5-flash')
         except Exception as e:
             raise Exception(f"Erro ao configurar Gemini: {str(e)}")
 
@@ -42,9 +42,7 @@ class GeminiServiceAdapter(GeminiServicePort):
             Saída: {{"category": "Improdutivo", "response": "Agradecemos seu interesse técnico. Para detalhes sobre segurança, consulte nossa Central de Transparência. Como não há pendência operacional, encerramos este registro."}}
 
             ### ANÁLISE DE CAMPO
-            Email: """
-            {text}
-            """
+            Email: {text}
 
             ### REQUISITO TÉCNICO
             Retorne APENAS um objeto JSON válido, sem explicações fora do objeto e sem blocos de código markdown.
