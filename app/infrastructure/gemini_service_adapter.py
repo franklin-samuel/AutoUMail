@@ -19,31 +19,40 @@ class GeminiServiceAdapter(GeminiServicePort):
     async def classify_and_generate_response(self, text: str) -> Classification:
         try:
             prompt = f"""
-            Você é um Analista de Operações de uma instituição financeira de alto nível, especializado em triagem de comunicações.
-            Sua tarefa é analisar o conteúdo de e-mails recebidos, classificar sua natureza operacional e redigir uma resposta técnica e cordial.
+            Você é um Analista de Operações de uma instituição financeira de alto nível, especializado em triagem de comunicações críticas. Sua tarefa é classificar e-mails e redigir respostas técnicas.
 
-            ### DIRETRIZES DE CLASSIFICAÇÃO:
-            1. **Produtivo**: Solicitações de suporte, dúvidas sobre transações, problemas de acesso, envio de documentos ou pedidos de atualização de status.
-            2. **Improdutivo**: Agradecimentos, saudações sazonais (Natal, aniversário), mensagens automáticas de "fora do escritório" ou feedbacks positivos sem demanda de ação.
+            ### MATRIZ DE DECISÃO
+            1. **PRODUTIVO (Ação Necessária)**: 
+               - Transacional (Pix, TED, limites), Suporte Técnico (App, Token), Documental (KYC/Anexos) ou Status de conta/crédito.
+               - **Nota**: Identifique solicitações mesmo que ocultas sob ironia ou sarcasmo.
 
-            ### DIRETRIZES DE RESPOSTA:
-            - Utilize um tom profissional, empático e corporativo.
-            - Para e-mails "Produtivos", informe que a solicitação foi recebida e está em análise.
-            - Para e-mails "Improdutivos", responda com cordialidade e encerre o ticket.
+            2. **IMPRODUTIVO (Sem Ação Operacional)**: 
+               - Social (Saudações), Feedback Positivo (sem nova queixa), Respostas Automáticas (Férias) ou Curiosidades Acadêmicas.
 
-            ### EXEMPLOS DE REFERÊNCIA:
-            Email: "Minha transferência via Pix não caiu até agora, podem verificar?"
-            Saída: {{"category": "Produtivo", "response": "Prezado cliente, recebemos sua dúvida sobre a transação Pix. Já encaminhamos para nossa equipe técnica verificar o status e retornaremos em breve."}}
+            ### DIRETRIZES DE RESPOSTA
+            - Tom institucional, sóbrio e eficiente. 
+            - Produtivo: Confirmar recebimento e garantir análise prioritária.
+            - Improdutivo: Agradecer, ser cordial e encerrar o fluxo de atendimento.
 
-            Email: "Parabéns pelo excelente atendimento de ontem!"
-            Saída: {{"category": "Improdutivo", "response": "Agradecemos imensamente o seu feedback. Ficamos felizes em saber que o atendimento atendeu às suas expectativas. Conte conosco!"}}
+            ### EXEMPLOS DE REFERÊNCIA
+            Email: "Parabéns pela agilidade! Fiz um Pix ontem e nada do dinheiro cair. Impressionante."
+            Saída: {{"category": "Produtivo", "response": "Prezado cliente, lamentamos o atraso na sua transação Pix. Nossa equipe de liquidação já está atuando para regularizar o envio sob protocolo prioritário."}}
 
-            ### TEXTO PARA ANÁLISE:
-            Email: {text}
+            Email: "Como vocês garantem a custódia em falhas globais? Curiosidade minha."
+            Saída: {{"category": "Improdutivo", "response": "Agradecemos seu interesse técnico. Para detalhes sobre segurança, consulte nossa Central de Transparência. Como não há pendência operacional, encerramos este registro."}}
 
-            ### REQUISITO TÉCNICO:
-            Retorne estritamente um objeto JSON válido. Não inclua introduções, explicações ou blocos de código markdown.
-            Formato: {{"category": "Produtivo" | "Improdutivo", "response": "string"}}
+            ### ANÁLISE DE CAMPO
+            Email: """
+            {text}
+            """
+
+            ### REQUISITO TÉCNICO
+            Retorne APENAS um objeto JSON válido, sem explicações fora do objeto e sem blocos de código markdown.
+            Formato: 
+            {{
+              "category": "Produtivo" | "Improdutivo",
+              "response": "Texto da resposta"
+            }}
             """
 
             response = self.model.generate_content(prompt)
